@@ -2,17 +2,16 @@
 
 > Command deck for your Astro site
 
-Admin hub with CMS integration, AI prompt generator, and more.
+Admin hub with CMS integration, AI prompt generator, image optimizer, and more.
+
+[![npm version](https://img.shields.io/npm/v/@sandikodev/astro-deck.svg)](https://www.npmjs.com/package/@sandikodev/astro-deck)
+[![license](https://img.shields.io/npm/l/@sandikodev/astro-deck.svg)](https://github.com/sandikodev/astro-deck/blob/main/LICENSE)
 
 ## Installation
 
 ```bash
-pnpm astro add astro-deck
-```
-
-Or manually:
-
-```bash
+npm install @sandikodev/astro-deck
+# or
 pnpm add @sandikodev/astro-deck
 ```
 
@@ -29,8 +28,10 @@ export default defineConfig({
 ## Features
 
 ### 📝 CMS Integration
-Decap CMS integration for content management. Requires `decap-server` for local development:
 
+Decap CMS integration for content management.
+
+**Setup:**
 ```bash
 pnpm add -D decap-server
 ```
@@ -44,15 +45,59 @@ Add to `package.json`:
 }
 ```
 
-### ✨ AI Prompt Generator
-Generate article prompts or full articles using AI (Gemini API).
+Create `public/admin/config.yml`:
+```yaml
+local_backend: true
+backend:
+  name: git-gateway
+  branch: main
 
-- Template-based prompt generation for Kiro CLI
-- Direct AI generation with Gemini API
-- Auto-formatted markdown with frontmatter
+media_folder: "public/images"
+public_folder: "/images"
+
+collections:
+  - name: "posts"
+    label: "Posts"
+    folder: "src/content/posts"
+    create: true
+    fields:
+      - { label: "Title", name: "title", widget: "string" }
+      - { label: "Body", name: "body", widget: "markdown" }
+```
+
+Run both servers:
+```bash
+pnpm dev   # Terminal 1
+pnpm cms   # Terminal 2
+```
+
+### ✨ AI Prompt Generator
+
+Generate article prompts or full articles using AI.
+
+**Modes:**
+- **Template mode**: Generate prompts for Kiro CLI / ChatGPT / Claude
+- **AI mode**: Direct generation with Gemini API
+
+**Setup Gemini:**
+1. Get API key from [Google AI Studio](https://aistudio.google.com/apikey)
+2. Go to `/admin/settings`
+3. Enter API key and save
+
+### 🖼️ Image Optimizer
+
+Client-side image compression. No upload to server.
+
+**Features:**
+- Drag & drop interface
+- Convert to WebP/JPEG/PNG
+- Resize dimensions
+- Quality control
+- Instant download
 
 ### ⚙️ Settings
-Configure API keys and preferences via browser UI.
+
+Configure API keys and preferences. Stored in browser localStorage (never sent to server).
 
 ## Configuration
 
@@ -68,74 +113,53 @@ astroDeck({
 
 | Route | Description |
 |-------|-------------|
-| `/admin` | Admin hub dashboard |
+| `/admin` | Hub dashboard |
 | `/admin/cms` | Decap CMS interface |
 | `/admin/prompt` | AI Prompt Generator |
+| `/admin/images` | Image Optimizer |
 | `/admin/settings` | API configuration |
 
-## Usage
+## Security
 
-### Local Development
+API keys are stored in **browser localStorage**:
 
-```bash
-# Terminal 1 - Astro dev server
-pnpm dev
+✅ Never sent to your server  
+✅ Never committed to git  
+⚠️ Accessible to browser extensions  
 
-# Terminal 2 - CMS backend (if using CMS)
-pnpm cms
-```
+**Recommendations:**
+- Use dedicated browser profile for development
+- Review installed extensions
+- Rotate API keys periodically
 
-Then open `http://localhost:4321/admin`
+See [SECURITY.md](./SECURITY.md) for details.
 
-### AI Prompt Generator
+## Contributing
 
-1. Configure Gemini API key in Settings
-2. Fill article form in Prompt Generator
-3. Click "Generate Prompt" (for Kiro CLI) or "Generate with AI" (direct)
-4. Copy result to CMS
+We welcome contributions! See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.
 
----
+**Ideas for new tools:**
+- SEO Checker
+- Analytics Dashboard
+- Link Checker
+- Performance Audit
 
-## ⚠️ Security Awareness
+## Roadmap
 
-### API Key Storage
-
-API keys are stored in **browser localStorage**. This means:
-
-✅ **Safe from:**
-- Server-side exposure
-- Git commits
-- Cross-origin access
-
-⚠️ **Vulnerable to:**
-- Malicious browser extensions
-- XSS attacks (if your site is compromised)
-- Physical access to your device
-
-### Recommendations
-
-1. **Review your browser extensions** - Remove any you don't trust
-2. **Use separate browser profile** for development
-3. **Rotate API keys** periodically
-4. **Use restricted API keys** with minimal permissions
-5. **Don't use on shared/public computers**
-
-### For Production
-
-If deploying admin publicly, consider:
-- Adding authentication layer
-- Moving API calls to server-side
-- Using environment variables
-
-### Gemini API Key Best Practices
-
-1. Get key from [Google AI Studio](https://aistudio.google.com/apikey)
-2. Set API restrictions (HTTP referrers)
-3. Set quota limits
-4. Monitor usage regularly
-
----
+- [x] CMS Integration
+- [x] AI Prompt Generator
+- [x] Image Optimizer
+- [x] Settings page
+- [ ] SEO Checker
+- [ ] Analytics Dashboard
+- [ ] Plugin system for custom tools
 
 ## License
 
 MIT © [Sandiko Dev](https://github.com/sandikodev)
+
+---
+
+<p align="center">
+  <sub>Built with ☕ for the Astro community</sub>
+</p>
