@@ -11,13 +11,13 @@ pnpm astro add astro-deck
 Or manually:
 
 ```bash
-pnpm add astro-deck
+pnpm add @sandikodev/astro-deck
 ```
 
 ```js
 // astro.config.mjs
 import { defineConfig } from 'astro/config';
-import astroDeck from 'astro-deck';
+import astroDeck from '@sandikodev/astro-deck';
 
 export default defineConfig({
   integrations: [astroDeck()]
