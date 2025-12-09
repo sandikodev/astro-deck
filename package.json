@@ -13,7 +13,10 @@
   "exports": {
     ".": "./index.js"
   },
-  "files": ["src", "index.js", "index.d.ts"],
+  "bin": {
+    "astro-deck": "./cli.js"
+  },
+  "files": ["src", "index.js", "index.d.ts", "cli.js"],
   "peerDependencies": {
     "astro": "^4.0.0 || ^5.0.0"
   },
