@@ -58,6 +58,13 @@ export default function astroDeck(options = {}) {
           logger.info('  ├─ Prompt Generator enabled');
         }
 
+        // Image Optimizer
+        injectRoute({
+          pattern: `${basePath}/images`,
+          entrypoint: join(currentDir, 'src/pages/admin/images.astro')
+        });
+        logger.info('  ├─ Image Optimizer enabled');
+
         logger.info(`  └─ Admin available at ${basePath}`);
       }
     }

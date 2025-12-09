@@ -1,6 +1,6 @@
 {
   "name": "@sandikodev/astro-deck",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "🚀 Command deck for Astro - Admin hub with CMS, AI prompt generator, and more",
   "keywords": ["astro", "astro-integration", "cms", "admin", "ai", "content"],
   "author": "Sandiko Dev",
