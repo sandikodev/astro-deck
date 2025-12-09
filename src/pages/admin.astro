@@ -1,0 +1,98 @@
+---
+// Admin Hub
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Admin Hub</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: Inter, system-ui, sans-serif;
+      background: #0a0a0a;
+      color: #fafafa;
+      min-height: 100vh;
+      padding: 2rem;
+    }
+    .container { max-width: 800px; margin: 0 auto; }
+    h1 { font-size: 2rem; margin-bottom: 0.5rem; }
+    .subtitle { color: #737373; margin-bottom: 2rem; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1rem;
+    }
+    .card {
+      background: #1a1a1a;
+      border: 1px solid #262626;
+      border-radius: 12px;
+      padding: 1.5rem;
+      text-decoration: none;
+      color: inherit;
+      transition: border-color 0.15s, transform 0.15s;
+    }
+    .card:hover {
+      border-color: #525252;
+      transform: translateY(-2px);
+    }
+    .card-icon { font-size: 2rem; margin-bottom: 1rem; }
+    .card-title { font-size: 1.125rem; font-weight: 600; margin-bottom: 0.5rem; }
+    .card-desc { font-size: 0.875rem; color: #737373; }
+    .badge {
+      display: inline-block;
+      font-size: 0.625rem;
+      padding: 0.25rem 0.5rem;
+      background: #22c55e20;
+      color: #22c55e;
+      border-radius: 4px;
+      margin-left: 0.5rem;
+      vertical-align: middle;
+    }
+    .badge.soon {
+      background: #f59e0b20;
+      color: #f59e0b;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Admin Hub</h1>
+    <p class="subtitle">Manage your portfolio blog</p>
+    
+    <div class="grid">
+      <a href="/admin/cms" class="card">
+        <div class="card-icon">📝</div>
+        <div class="card-title">CMS <span class="badge">Ready</span></div>
+        <p class="card-desc">Create and edit blog posts, manage authors and content.</p>
+      </a>
+      
+      <a href="/admin/prompt" class="card">
+        <div class="card-icon">✨</div>
+        <div class="card-title">Prompt Generator <span class="badge">Ready</span></div>
+        <p class="card-desc">Generate AI prompts for writing articles with Kiro CLI.</p>
+      </a>
+      
+      <div class="card" style="opacity: 0.5; cursor: not-allowed;">
+        <div class="card-icon">🖼️</div>
+        <div class="card-title">Image Optimizer <span class="badge soon">Soon</span></div>
+        <p class="card-desc">Compress and optimize images for better performance.</p>
+      </div>
+      
+      <div class="card" style="opacity: 0.5; cursor: not-allowed;">
+        <div class="card-icon">📊</div>
+        <div class="card-title">SEO Checker <span class="badge soon">Soon</span></div>
+        <p class="card-desc">Analyze and improve your content's SEO score.</p>
+      </div>
+      
+      <a href="/admin/settings" class="card">
+        <div class="card-icon">⚙️</div>
+        <div class="card-title">Settings</div>
+        <p class="card-desc">Configure API keys and preferences.</p>
+      </a>
+    </div>
+  </div>
+</body>
+</html>

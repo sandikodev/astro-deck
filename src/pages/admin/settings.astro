@@ -1,0 +1,263 @@
+---
+// Admin Settings
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Settings - Admin Hub</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: Inter, system-ui, sans-serif;
+      background: #0a0a0a;
+      color: #fafafa;
+      min-height: 100vh;
+      padding: 2rem;
+    }
+    .container { max-width: 600px; margin: 0 auto; }
+    .back { color: #737373; text-decoration: none; font-size: 0.875rem; }
+    .back:hover { color: #fafafa; }
+    h1 { font-size: 1.5rem; margin: 1rem 0 0.5rem; }
+    .subtitle { color: #737373; margin-bottom: 2rem; font-size: 0.875rem; }
+    
+    .card {
+      background: #1a1a1a;
+      border: 1px solid #262626;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+    }
+    .card-title { font-weight: 600; margin-bottom: 0.25rem; }
+    .card-desc { font-size: 0.875rem; color: #737373; margin-bottom: 1rem; }
+    
+    .form-group { margin-bottom: 1rem; }
+    label { display: block; font-size: 0.875rem; margin-bottom: 0.5rem; color: #a3a3a3; }
+    input {
+      width: 100%;
+      padding: 0.75rem;
+      background: #0a0a0a;
+      border: 1px solid #262626;
+      border-radius: 8px;
+      color: #fafafa;
+      font-size: 1rem;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    input:focus { outline: none; border-color: #525252; }
+    input::placeholder { color: #525252; }
+    
+    .input-group {
+      display: flex;
+      gap: 0.5rem;
+    }
+    .input-group input { flex: 1; }
+    
+    button {
+      padding: 0.75rem 1.25rem;
+      background: #262626;
+      color: #fafafa;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    button:hover { background: #363636; }
+    button.primary { background: #fafafa; color: #0a0a0a; }
+    button.primary:hover { opacity: 0.9; }
+    button.danger { background: #dc262620; color: #ef4444; }
+    button.danger:hover { background: #dc262640; }
+    
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.875rem;
+      padding: 0.5rem 0.75rem;
+      border-radius: 6px;
+      margin-bottom: 1rem;
+    }
+    .status.connected { background: #22c55e20; color: #22c55e; }
+    .status.disconnected { background: #ef444420; color: #ef4444; }
+    
+    .hint {
+      font-size: 0.75rem;
+      color: #525252;
+      margin-top: 0.5rem;
+    }
+    .hint a { color: #60a5fa; }
+    
+    .toast {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      padding: 1rem 1.5rem;
+      background: #1a1a1a;
+      border: 1px solid #262626;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.3s;
+    }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast.success { border-color: #22c55e; }
+    .toast.error { border-color: #ef4444; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <a href="/admin" class="back">← Back to Admin Hub</a>
+    <h1>Settings</h1>
+    <p class="subtitle">Configure API keys and preferences</p>
+    
+    <div class="card">
+      <div class="card-title">Google Gemini API</div>
+      <p class="card-desc">Enable AI-powered article generation in Prompt Generator</p>
+      
+      <div id="apiStatus" class="status disconnected">
+        <span>●</span> <span id="statusText">Not configured</span>
+      </div>
+      
+      <div class="form-group">
+        <label for="geminiKey">API Key</label>
+        <div class="input-group">
+          <input type="password" id="geminiKey" placeholder="AIza..." />
+          <button type="button" id="toggleKey">Show</button>
+        </div>
+        <p class="hint">Get your API key from <a href="https://aistudio.google.com/apikey" target="_blank">Google AI Studio</a></p>
+      </div>
+      
+      <div class="form-group">
+        <label for="geminiModel">Model</label>
+        <input type="text" id="geminiModel" placeholder="gemini-2.0-flash" value="gemini-2.0-flash" />
+      </div>
+      
+      <div style="display: flex; gap: 0.5rem;">
+        <button id="saveBtn" class="primary">Save</button>
+        <button id="testBtn">Test Connection</button>
+        <button id="clearBtn" class="danger">Clear</button>
+      </div>
+    </div>
+    
+    <div class="card">
+      <div class="card-title">Storage Info</div>
+      <p class="card-desc">API keys are stored in your browser's localStorage (local only, never sent to server)</p>
+    </div>
+  </div>
+  
+  <div class="toast" id="toast"></div>
+  
+  <script>
+    const keyInput = document.getElementById('geminiKey');
+    const modelInput = document.getElementById('geminiModel');
+    const toggleBtn = document.getElementById('toggleKey');
+    const saveBtn = document.getElementById('saveBtn');
+    const testBtn = document.getElementById('testBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const apiStatus = document.getElementById('apiStatus');
+    const statusText = document.getElementById('statusText');
+    const toast = document.getElementById('toast');
+    
+    // Load saved settings
+    const savedKey = localStorage.getItem('gemini_api_key');
+    const savedModel = localStorage.getItem('gemini_model') || 'gemini-2.0-flash';
+    
+    if (savedKey) {
+      keyInput.value = savedKey;
+      modelInput.value = savedModel;
+      updateStatus(true);
+    }
+    
+    function updateStatus(connected) {
+      if (connected) {
+        apiStatus.className = 'status connected';
+        statusText.textContent = 'Configured';
+      } else {
+        apiStatus.className = 'status disconnected';
+        statusText.textContent = 'Not configured';
+      }
+    }
+    
+    function showToast(message, type = 'success') {
+      toast.textContent = message;
+      toast.className = `toast show ${type}`;
+      setTimeout(() => toast.className = 'toast', 3000);
+    }
+    
+    toggleBtn.addEventListener('click', () => {
+      if (keyInput.type === 'password') {
+        keyInput.type = 'text';
+        toggleBtn.textContent = 'Hide';
+      } else {
+        keyInput.type = 'password';
+        toggleBtn.textContent = 'Show';
+      }
+    });
+    
+    saveBtn.addEventListener('click', () => {
+      const key = keyInput.value.trim();
+      const model = modelInput.value.trim() || 'gemini-2.0-flash';
+      
+      if (!key) {
+        showToast('Please enter an API key', 'error');
+        return;
+      }
+      
+      localStorage.setItem('gemini_api_key', key);
+      localStorage.setItem('gemini_model', model);
+      updateStatus(true);
+      showToast('Settings saved!');
+    });
+    
+    testBtn.addEventListener('click', async () => {
+      const key = keyInput.value.trim();
+      const model = modelInput.value.trim() || 'gemini-2.0-flash';
+      
+      if (!key) {
+        showToast('Please enter an API key first', 'error');
+        return;
+      }
+      
+      testBtn.textContent = 'Testing...';
+      testBtn.disabled = true;
+      
+      try {
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-goog-api-key': key },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: 'Say "OK" only.' }] }]
+          })
+        });
+        
+        if (res.ok) {
+          showToast('Connection successful!');
+          updateStatus(true);
+        } else {
+          const err = await res.json();
+          showToast(err.error?.message || 'Connection failed', 'error');
+          updateStatus(false);
+        }
+      } catch (e) {
+        showToast('Connection failed: ' + e.message, 'error');
+        updateStatus(false);
+      }
+      
+      testBtn.textContent = 'Test Connection';
+      testBtn.disabled = false;
+    });
+    
+    clearBtn.addEventListener('click', () => {
+      localStorage.removeItem('gemini_api_key');
+      localStorage.removeItem('gemini_model');
+      keyInput.value = '';
+      modelInput.value = 'gemini-2.0-flash';
+      updateStatus(false);
+      showToast('Settings cleared');
+    });
+  </script>
+</body>
+</html>

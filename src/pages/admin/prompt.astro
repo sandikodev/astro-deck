@@ -1,0 +1,422 @@
+---
+// Prompt Generator for Kiro CLI + Gemini AI
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Prompt Generator</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: Inter, system-ui, sans-serif;
+      background: #0a0a0a;
+      color: #fafafa;
+      min-height: 100vh;
+      padding: 2rem;
+    }
+    .container { max-width: 700px; margin: 0 auto; }
+    .back { color: #737373; text-decoration: none; font-size: 0.875rem; }
+    .back:hover { color: #fafafa; }
+    h1 { font-size: 1.5rem; margin: 1rem 0 0.5rem; }
+    .subtitle { color: #737373; margin-bottom: 1.5rem; font-size: 0.875rem; }
+    
+    .api-banner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.75rem 1rem;
+      background: #1a1a1a;
+      border: 1px solid #262626;
+      border-radius: 8px;
+      margin-bottom: 1.5rem;
+      font-size: 0.875rem;
+    }
+    .api-banner.connected { border-color: #22c55e40; }
+    .api-status { display: flex; align-items: center; gap: 0.5rem; }
+    .api-status .dot { width: 8px; height: 8px; border-radius: 50%; background: #ef4444; }
+    .api-status.on .dot { background: #22c55e; }
+    .api-banner a { color: #60a5fa; text-decoration: none; }
+    
+    .form-group { margin-bottom: 1.25rem; }
+    label { display: block; font-size: 0.875rem; margin-bottom: 0.5rem; color: #a3a3a3; }
+    input, select, textarea {
+      width: 100%;
+      padding: 0.75rem;
+      background: #1a1a1a;
+      border: 1px solid #262626;
+      border-radius: 8px;
+      color: #fafafa;
+      font-size: 1rem;
+      font-family: inherit;
+    }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: #525252; }
+    textarea { resize: vertical; min-height: 80px; }
+    
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    
+    .btn-group { display: flex; gap: 0.5rem; }
+    button {
+      flex: 1;
+      padding: 0.875rem;
+      background: #262626;
+      color: #fafafa;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    button:hover { background: #363636; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    button.primary { background: #fafafa; color: #0a0a0a; }
+    button.primary:hover { opacity: 0.9; }
+    button.ai { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    button.ai:hover { opacity: 0.9; }
+    button.ai:disabled { background: #363636; }
+    
+    .output {
+      margin-top: 2rem;
+      padding: 1.25rem;
+      background: #1a1a1a;
+      border: 1px solid #262626;
+      border-radius: 8px;
+      display: none;
+    }
+    .output.show { display: block; }
+    .output-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    .output-title { font-weight: 600; }
+    .output-actions { display: flex; gap: 0.5rem; }
+    .small-btn {
+      padding: 0.5rem 1rem;
+      background: #262626;
+      color: #fafafa;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.875rem;
+      cursor: pointer;
+      flex: none;
+    }
+    .small-btn:hover { background: #363636; }
+    .small-btn.copied { background: #22c55e; }
+    .small-btn.cms { background: #3b82f6; }
+    
+    pre {
+      background: #0a0a0a;
+      padding: 1rem;
+      border-radius: 6px;
+      overflow-x: auto;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.875rem;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      word-break: break-word;
+      max-height: 500px;
+      overflow-y: auto;
+    }
+    
+    .loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 2rem;
+      color: #737373;
+    }
+    .spinner {
+      width: 20px;
+      height: 20px;
+      border: 2px solid #262626;
+      border-top-color: #fafafa;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    
+    .tips {
+      margin-top: 2rem;
+      padding: 1rem;
+      background: #1a1a1a;
+      border-radius: 8px;
+      font-size: 0.875rem;
+    }
+    .tips-title { font-weight: 600; margin-bottom: 0.5rem; }
+    .tips ol { padding-left: 1.25rem; color: #a3a3a3; }
+    .tips li { margin-bottom: 0.25rem; }
+    .tips code { background: #262626; padding: 0.125rem 0.375rem; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <a href="/admin" class="back">← Back to Admin Hub</a>
+    <h1>Prompt Generator</h1>
+    <p class="subtitle">Generate prompts or articles with AI</p>
+    
+    <div class="api-banner" id="apiBanner">
+      <div class="api-status" id="apiStatus">
+        <span class="dot"></span>
+        <span id="apiText">Gemini API not configured</span>
+      </div>
+      <a href="/admin/settings">Configure</a>
+    </div>
+    
+    <form id="promptForm">
+      <div class="form-group">
+        <label for="topic">Topic / Title</label>
+        <input type="text" id="topic" placeholder="e.g., How to optimize React performance" required />
+      </div>
+      
+      <div class="row">
+        <div class="form-group">
+          <label for="style">Writing Style</label>
+          <select id="style">
+            <option value="tutorial">Tutorial / How-to</option>
+            <option value="explanation">Explanation / Deep Dive</option>
+            <option value="comparison">Comparison / vs</option>
+            <option value="listicle">Listicle / Tips</option>
+            <option value="case-study">Case Study</option>
+            <option value="opinion">Opinion / Thoughts</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label for="length">Article Length</label>
+          <select id="length">
+            <option value="short">Short (~500 words)</option>
+            <option value="medium" selected>Medium (~1000 words)</option>
+            <option value="long">Long (~2000 words)</option>
+          </select>
+        </div>
+      </div>
+      
+      <div class="row">
+        <div class="form-group">
+          <label for="audience">Target Audience</label>
+          <select id="audience">
+            <option value="beginner">Beginner</option>
+            <option value="intermediate" selected>Intermediate</option>
+            <option value="advanced">Advanced</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label for="language">Language</label>
+          <select id="language">
+            <option value="indonesian" selected>Indonesian</option>
+            <option value="english">English</option>
+          </select>
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label for="keywords">Keywords (comma separated)</label>
+        <input type="text" id="keywords" placeholder="e.g., react, performance, optimization, hooks" />
+      </div>
+      
+      <div class="form-group">
+        <label for="notes">Additional Notes (optional)</label>
+        <textarea id="notes" placeholder="Any specific points to cover, examples to include, or tone preferences..."></textarea>
+      </div>
+      
+      <div class="btn-group">
+        <button type="submit">Generate Prompt</button>
+        <button type="button" id="aiBtn" class="ai" disabled>✨ Generate with AI</button>
+      </div>
+    </form>
+    
+    <div class="output" id="output">
+      <div class="output-header">
+        <span class="output-title" id="outputTitle">Generated Prompt</span>
+        <div class="output-actions">
+          <button class="small-btn" id="copyBtn">Copy</button>
+          <button class="small-btn cms" id="cmsBtn" style="display:none;">Open in CMS →</button>
+        </div>
+      </div>
+      <div id="outputContent">
+        <pre id="promptResult"></pre>
+      </div>
+    </div>
+    
+    <div class="tips" id="tips">
+      <div class="tips-title">How to use:</div>
+      <ol>
+        <li>Fill the form and click Generate Prompt</li>
+        <li>Copy the generated prompt</li>
+        <li>Open terminal and run <code>kiro chat</code></li>
+        <li>Paste the prompt and let Kiro write your article</li>
+        <li>Copy the result and paste it in CMS</li>
+      </ol>
+    </div>
+  </div>
+  
+  <script>
+    const form = document.getElementById('promptForm');
+    const output = document.getElementById('output');
+    const outputContent = document.getElementById('outputContent');
+    const outputTitle = document.getElementById('outputTitle');
+    const result = document.getElementById('promptResult');
+    const copyBtn = document.getElementById('copyBtn');
+    const cmsBtn = document.getElementById('cmsBtn');
+    const aiBtn = document.getElementById('aiBtn');
+    const apiBanner = document.getElementById('apiBanner');
+    const apiStatus = document.getElementById('apiStatus');
+    const apiText = document.getElementById('apiText');
+    const tips = document.getElementById('tips');
+    
+    const styleMap = {
+      'tutorial': 'tutorial step-by-step yang praktis',
+      'explanation': 'penjelasan mendalam dengan contoh',
+      'comparison': 'perbandingan objektif dengan pros/cons',
+      'listicle': 'listicle dengan tips actionable',
+      'case-study': 'case study dengan data dan hasil nyata',
+      'opinion': 'opini personal dengan argumentasi kuat'
+    };
+    
+    const lengthMap = { 'short': '~500 kata', 'medium': '~1000 kata', 'long': '~2000 kata' };
+    const audienceMap = {
+      'beginner': 'pemula yang baru belajar',
+      'intermediate': 'developer dengan pengalaman menengah',
+      'advanced': 'developer senior yang sudah berpengalaman'
+    };
+    
+    // Check API status
+    const apiKey = localStorage.getItem('gemini_api_key');
+    const apiModel = localStorage.getItem('gemini_model') || 'gemini-2.0-flash';
+    
+    if (apiKey) {
+      apiBanner.classList.add('connected');
+      apiStatus.classList.add('on');
+      apiText.textContent = 'Gemini API connected';
+      aiBtn.disabled = false;
+    }
+    
+    function buildPrompt() {
+      const topic = document.getElementById('topic').value;
+      const style = document.getElementById('style').value;
+      const length = document.getElementById('length').value;
+      const audience = document.getElementById('audience').value;
+      const language = document.getElementById('language').value;
+      const keywords = document.getElementById('keywords').value;
+      const notes = document.getElementById('notes').value;
+      
+      const lang = language === 'indonesian' ? 'Bahasa Indonesia' : 'English';
+      const today = new Date().toISOString().split('T')[0];
+      
+      let prompt = `Buatkan artikel blog dengan spesifikasi berikut:
+
+**Topik:** ${topic}
+**Gaya:** ${styleMap[style]}
+**Panjang:** ${lengthMap[length]}
+**Target pembaca:** ${audienceMap[audience]}
+**Bahasa:** ${lang}`;
+
+      if (keywords) prompt += `\n**Keywords:** ${keywords}`;
+      if (notes) prompt += `\n**Catatan tambahan:** ${notes}`;
+      
+      prompt += `
+
+Format output dalam Markdown dengan frontmatter YAML:
+---
+title: "..."
+description: "..."
+date: ${today}
+image: "/images/posts/placeholder.jpg"
+categories: ["..."]
+authors: ["Sandiko Dev"]
+tags: [${keywords ? keywords.split(',').map(k => `"${k.trim()}"`).join(', ') : '"..."'}]
+draft: false
+---
+
+Pastikan artikel:
+- Memiliki struktur heading yang jelas (H2, H3)
+- Menyertakan code examples jika relevan
+- Engaging dan mudah dipahami
+- SEO-friendly dengan keyword yang natural`;
+
+      return prompt;
+    }
+    
+    // Generate Prompt only
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const prompt = buildPrompt();
+      result.textContent = prompt;
+      outputTitle.textContent = 'Generated Prompt';
+      cmsBtn.style.display = 'none';
+      tips.style.display = 'block';
+      output.classList.add('show');
+    });
+    
+    // Generate with AI
+    aiBtn.addEventListener('click', async () => {
+      if (!apiKey) return;
+      
+      const prompt = buildPrompt();
+      
+      aiBtn.disabled = true;
+      aiBtn.textContent = 'Generating...';
+      outputTitle.textContent = 'Generated Article';
+      outputContent.innerHTML = '<div class="loading"><div class="spinner"></div>Generating article with Gemini AI...</div>';
+      output.classList.add('show');
+      tips.style.display = 'none';
+      
+      try {
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${apiModel}:generateContent`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-goog-api-key': apiKey },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: { temperature: 0.7, maxOutputTokens: 8192 }
+          })
+        });
+        
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.error?.message || 'API request failed');
+        }
+        
+        const data = await res.json();
+        const article = data.candidates?.[0]?.content?.parts?.[0]?.text || 'No content generated';
+        
+        outputContent.innerHTML = `<pre id="promptResult">${escapeHtml(article)}</pre>`;
+        cmsBtn.style.display = 'block';
+        
+        // Store for CMS
+        localStorage.setItem('generated_article', article);
+        
+      } catch (err) {
+        outputContent.innerHTML = `<pre id="promptResult" style="color:#ef4444;">Error: ${escapeHtml(err.message)}</pre>`;
+      }
+      
+      aiBtn.disabled = false;
+      aiBtn.textContent = '✨ Generate with AI';
+    });
+    
+    function escapeHtml(text) {
+      return text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+    
+    copyBtn.addEventListener('click', async () => {
+      const text = document.getElementById('promptResult')?.textContent || '';
+      await navigator.clipboard.writeText(text);
+      copyBtn.textContent = 'Copied!';
+      copyBtn.classList.add('copied');
+      setTimeout(() => { copyBtn.textContent = 'Copy'; copyBtn.classList.remove('copied'); }, 2000);
+    });
+    
+    cmsBtn.addEventListener('click', () => {
+      window.open('/admin/cms#/collections/posts/new', '_blank');
+    });
+  </script>
+</body>
+</html>
