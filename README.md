@@ -1,6 +1,8 @@
 # 🚀 Astro Deck
 
-Command deck for your Astro site - Admin hub with CMS integration, AI prompt generator, and more.
+> Command deck for your Astro site
+
+Admin hub with CMS integration, AI prompt generator, and more.
 
 ## Installation
 
